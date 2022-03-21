@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	aapi "github.com/grafana/amixr-api-go-client"
 	gapi "github.com/grafana/grafana-api-golang-client"
 	"github.com/grafana/machine-learning-go-client/mlapi"
 	smapi "github.com/grafana/synthetic-monitoring-api-go-client"
@@ -174,6 +175,14 @@ func Provider(version string) func() *schema.Provider {
 
 				// Machine Learning
 				"grafana_machine_learning_job": ResourceMachineLearningJob(),
+
+				// Amixr
+				"grafana_amixr_integration": ResourceAmixrIntegration(),
+				//"grafan_amixr_escalation_chain": ResourceEscalationChain(),
+				//"grafan_amixr_escalation":       ResourceEscalation(),
+				//"grafan_amixr_route":            ResourceRoute(),
+				//"grafan_amixr_on_call_shift":    ResourceOnCallShift(),
+				//"grafan_amixr_schedule":         ResourceSchedule(),
 			},
 
 			DataSourcesMap: map[string]*schema.Resource{
@@ -190,6 +199,15 @@ func Provider(version string) func() *schema.Provider {
 				// Synthetic Monitoring
 				"grafana_synthetic_monitoring_probe":  DatasourceSyntheticMonitoringProbe(),
 				"grafana_synthetic_monitoring_probes": DatasourceSyntheticMonitoringProbes(),
+
+				// Amixr
+				//"grafana_amixr_user":             DataSourceAmixrUser(),
+				//"grafana_amixr_escalation_chain": DataSourceEscalationChain(),
+				//"grafana_amixr_schedule":         DataSourceAmixrSchedule(),
+				//"grafana_amixr_slack_channel":    DataSourceAmixrSlackChannel(),
+				//"grafana_amixr_action":           DataSourceAmixrAction(),
+				//"grafana_amixr_user_group":       DataSourceAmixrUserGroup(),
+				//"grafana_amixr_team":             DataSourceAmixrTeam(),
 			},
 		}
 
@@ -209,6 +227,8 @@ type client struct {
 	smURL string
 
 	mlapi *mlapi.Client
+
+	aapi *aapi.Client
 }
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -234,6 +254,11 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			return nil, diag.FromErr(err)
 		}
 		c.smURL, c.smapi = createSMClient(d)
+
+		c.aapi, err = createAClient(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
 
 		storeDashboardSHA256 = d.Get("store_dashboard_sha256").(bool)
 
@@ -341,6 +366,16 @@ func createSMClient(d *schema.ResourceData) (string, *smapi.Client) {
 	smToken := d.Get("sm_access_token").(string)
 	smURL := d.Get("sm_url").(string)
 	return smURL, smapi.NewClient(smURL, smToken, nil)
+}
+
+func createAClient(d *schema.ResourceData) (*aapi.Client, error) {
+	aToken := d.Get("amixr_access_token").(string)
+	base_url := d.Get("amixr_url").(string)
+	aclient, err := aapi.New(base_url, aToken)
+	if err != nil {
+		return nil, err
+	}
+	return aclient, nil
 }
 
 // getJSONMap is a helper function that parses the given environment variable as a JSON object
