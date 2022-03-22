@@ -60,7 +60,7 @@ func Provider(version string) func() *schema.Provider {
 					Sensitive:    true,
 					DefaultFunc:  schema.EnvDefaultFunc("GRAFANA_AUTH", nil),
 					Description:  "API token or basic auth username:password. May alternatively be set via the `GRAFANA_AUTH` environment variable.",
-					AtLeastOneOf: []string{"auth", "cloud_api_key", "sm_access_token"},
+					AtLeastOneOf: []string{"auth", "cloud_api_key", "sm_access_token", "amixr_access_token"},
 				},
 				"http_headers": {
 					Type:        schema.TypeMap,
@@ -140,6 +140,21 @@ func Provider(version string) func() *schema.Provider {
 					Optional:    true,
 					DefaultFunc: schema.EnvDefaultFunc("GRAFANA_STORE_DASHBOARD_SHA256", false),
 					Description: "Set to true if you want to save only the sha256sum instead of complete dashboard model JSON in the tfstate.",
+				},
+
+				"amixr_access_token": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Sensitive:   true,
+					DefaultFunc: schema.EnvDefaultFunc("GRAFANA_AMIXR_ACCESS_TOKEN", nil),
+					Description: "A Synthetic Monitoring access token. May alternatively be set via the `GRAFANA_SM_ACCESS_TOKEN` environment variable.",
+				},
+				"amixr_url": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					DefaultFunc:  schema.EnvDefaultFunc("GRAFANA_AMIXR_URL", "https://synthetic-monitoring-api.grafana.net"),
+					Description:  "Synthetic monitoring backend address. May alternatively be set via the `GRAFANA_SM_URL` environment variable.",
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 			},
 
