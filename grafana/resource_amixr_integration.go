@@ -137,7 +137,7 @@ func ResourceAmixrIntegration() *schema.Resource {
 }
 
 func resourceIntegrationCreate(d *schema.ResourceData, m interface{}) error {
-	client := m.(*aapi.Client)
+	client := m.(*client).aapi
 
 	teamIdData := d.Get("team_id").(string)
 	nameData := d.Get("name").(string)
@@ -162,7 +162,7 @@ func resourceIntegrationCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceIntegrationUpdate(d *schema.ResourceData, m interface{}) error {
-	client := m.(*aapi.Client)
+	client := m.(*client).aapi
 
 	nameData := d.Get("name").(string)
 	templateData := d.Get("templates").([]interface{})
@@ -186,7 +186,7 @@ func resourceIntegrationUpdate(d *schema.ResourceData, m interface{}) error {
 
 func resourceIntegrationRead(d *schema.ResourceData, m interface{}) error {
 
-	client := m.(*aapi.Client)
+	client := m.(*client).aapi
 	options := &aapi.GetIntegrationOptions{}
 	integration, _, err := client.Integrations.GetIntegration(d.Id(), options)
 	if err != nil {
@@ -206,7 +206,7 @@ func resourceIntegrationRead(d *schema.ResourceData, m interface{}) error {
 func resourceIntegrationDelete(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[DEBUG] delete amixr integration")
 
-	client := m.(*aapi.Client)
+	client := m.(*client).aapi
 	options := &aapi.DeleteIntegrationOptions{}
 	_, err := client.Integrations.DeleteIntegration(d.Id(), options)
 	if err != nil {
